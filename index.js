@@ -8,6 +8,7 @@ import cors from "cors"
 import connectdb from './src/db/index.js'
 import userRouter from "./src/routes/user.routes.js"
 import blogRouter from "./src/routes/blog.routes.js"
+import reactionRouter from "./src/routes/reaction.routes.js"
 
 const corsOption = {
     origin: '',
@@ -19,6 +20,7 @@ app.use(express.json())
 app.use(cookieParser())
 app.use('/user', userRouter)
 app.use('/api/v1', blogRouter)
+app.use('/api/v2', reactionRouter)
 
 
 
