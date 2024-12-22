@@ -70,6 +70,7 @@ export const signIn = async (req, res) => {
 export const logOut = async (req, res) => {
     try {
         await res.clearCookie("refreshToken");
+        await res.clearCookie("accessToken");
         res.status(200).json({ message: "Logout Successfull" })
     } catch (error) {
         console.log(error);
