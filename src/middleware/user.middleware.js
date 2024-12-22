@@ -1,15 +1,16 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
-const checkUser = async (req, res, next) => {
-    const token = req.cookies.token;
-    if (!token) return res.status(401).json({ message: "Login First" });
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.status(403).json({ message: "Invalid Token" })
-        };
+export const authenticateUser = (req, res) => {
+    const refresJwtToken = req.cookie.refreshToken;
+    if (!refresJwtToken) return res.status(404).json({ message: "Please Login First To Access This Page" });
+
+    jwt.verify(refresJwtToken, process.env.REFRESH_JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ message: "Cannot Verify JWT" });
         req.user = user;
-        next();
+        res.json({
+            message: "User Verified",
+            user: req.user,
+            token,
+        });
     });
 };
-
-export default checkUser
