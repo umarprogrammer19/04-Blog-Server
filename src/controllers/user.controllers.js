@@ -2,7 +2,7 @@ import users from "../models/user.models.js";
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken";
 
-// generative token fro user 
+// Generate Token For User 
 const generateAccessToken = (user) => {
     return jwt.sign({ email: user.email }, process.env.ACCESS_JWT_SECRET, {
         expiresIn: "6h",
@@ -14,8 +14,8 @@ const generateRefreshToken = (user) => {
     });
 };
 
-// signUp Api
-const signUp = async (req, res) => {
+// Sign Up Api 
+export const signUp = async (req, res) => {
     const { fullname, email, password } = req.body;
     if (!fullname) return res.status(400).json({ messaage: "full Name is required" });
     if (!email) return res.status(400).json({ messaage: "email is required" });
@@ -31,8 +31,8 @@ const signUp = async (req, res) => {
     }
 }
 
-// login Api 
-const signIn = async (req, res) => {
+// Login Api 
+export const signIn = async (req, res) => {
     try {
         const { email, password } = req.body;
         if (!email) return res.status(400).json({ message: "Email is Required" });
@@ -50,7 +50,8 @@ const signIn = async (req, res) => {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "None",
+            sameSite: "strict",
+            path: '/'
         });
 
         res.status(200).json({
@@ -65,8 +66,8 @@ const signIn = async (req, res) => {
     }
 }
 
-// logout 
-const logOut = async (req, res) => {
+// logout Api
+export const logOut = async (req, res) => {
     try {
         await res.clearCookie("refreshToken");
         res.status(200).json({ message: "Logout Successfull" })
@@ -75,6 +76,3 @@ const logOut = async (req, res) => {
         res.status(400).json({ message: "An error occurred during Logout" })
     };
 };
-
-
-export { signUp, signIn, logOut }
