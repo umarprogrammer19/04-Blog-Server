@@ -17,6 +17,7 @@ const generateRefreshToken = (user) => {
 // signUp Api
 const signUp = async (req, res) => {
     const { fullname, email, password } = req.body;
+    if (!fullname) return res.status(400).json({ messaage: "full Name is required" });
     if (!email) return res.status(400).json({ messaage: "email is required" });
     if (!password) return res.status(400).json({ messaage: "password is required" });
     try {
@@ -48,7 +49,7 @@ const signIn = async (req, res) => {
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: true,
+            secure: process.env.NODE_ENV === "production",
             sameSite: "None",
         });
 

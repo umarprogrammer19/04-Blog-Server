@@ -11,8 +11,8 @@ import blogRouter from "./src/routes/blog.routes.js";
 import reactionRouter from "./src/routes/reaction.routes.js";
 
 const corsOption = {
-    origin: '',
-    Credentials: true
+    origin: "http://localhost:3000",
+    credentials: true,
 };
 app.use(cors(corsOption));
 app.use((urlencoded({ extended: false })));
