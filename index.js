@@ -22,10 +22,9 @@ app.use('/user', userRouter);
 app.use('/api/v1', blogRouter);
 app.use('/api/v2', reactionRouter);
 
-
-app.get('/', (req, res) => {
-    res.send('Hello Talha')
-});
+app.get("/", (req, res) => {
+    res.send("Hello World");
+})
 
 // Connection  
 connectdb()
