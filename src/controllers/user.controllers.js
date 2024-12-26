@@ -1,6 +1,7 @@
 import users from "../models/user.models.js";
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken";
+import { uploadImage } from "../utils/cloudinary.js";
 
 // Generate Token For User 
 const generateAccessToken = (user) => {
@@ -20,10 +21,15 @@ export const signUp = async (req, res) => {
     if (!fullname) return res.status(400).json({ messaage: "full Name is required" });
     if (!email) return res.status(400).json({ messaage: "email is required" });
     if (!password) return res.status(400).json({ messaage: "password is required" });
+    if (!req.file) return res.status(400).json({ messaage: "Image is required" });
     try {
         const user = await users.findOne({ email })
-        if (user) return res.status(400).json({ message: "user already exits" })
-        await users.create({ fullname, email, password })
+        if (user) return res.status(400).json({ message: "user already exits" });
+
+        const imageURL = await uploadImage(req.file.path);
+        if (!imageURL) res.status(500).json("An Error Occured While Uploading An Image");
+
+        await users.create({ fullname, email, password, imageURL })
         res.status(200).json({ messaage: "user register successfully" })
     } catch (error) {
         res.status(400).json({ messaage: "error occured" })
@@ -77,5 +83,3 @@ export const logOut = async (req, res) => {
         res.status(400).json({ message: "An error occurred during Logout" })
     };
 };
-
-
