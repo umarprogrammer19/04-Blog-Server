@@ -1,7 +1,7 @@
 import users from "../models/user.models.js";
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken";
-import { uploadImage } from "../utils/cloudinary.js";
+import { uploadImageToCloudinary } from "../utils/cloudinary.js";
 
 // Generate Token For User 
 const generateAccessToken = (user) => {
@@ -18,21 +18,21 @@ const generateRefreshToken = (user) => {
 // Sign Up Api 
 export const signUp = async (req, res) => {
     const { fullname, email, password } = req.body;
-    if (!fullname) return res.status(400).json({ messaage: "full Name is required" });
-    if (!email) return res.status(400).json({ messaage: "email is required" });
-    if (!password) return res.status(400).json({ messaage: "password is required" });
-    if (!req.file) return res.status(400).json({ messaage: "Image is required" });
+    if (!fullname) return res.status(400).json({ message: "full Name is required" });
+    if (!email) return res.status(400).json({ message: "email is required" });
+    if (!password) return res.status(400).json({ message: "password is required" });
+    if (!req.file) return res.status(400).json({ message: "Image is required" });
     try {
         const user = await users.findOne({ email })
         if (user) return res.status(400).json({ message: "user already exits" });
 
-        const imageURL = await uploadImage(req.file.path);
-        if (!imageURL) res.status(500).json("An Error Occured While Uploading An Image");
+        const imageURL = await uploadImageToCloudinary(req.file.path);
+        if (!imageURL) return res.status(500).json({ message: "An Error Occured While Uploading An Image" });
 
         await users.create({ fullname, email, password, imageURL })
-        res.status(200).json({ messaage: "user register successfully" })
+        res.status(200).json({ message: "user register successfully" })
     } catch (error) {
-        res.status(400).json({ messaage: "error occured" })
+        res.status(400).json({ message: "error occured" })
         console.log(error);
     }
 }

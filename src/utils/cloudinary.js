@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+import "dotenv/config";
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -7,7 +8,8 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadImageToCloudinary = async (localPath) => {
+// Utility function to upload an image to Cloudinary
+export const uploadImageToCloudinary = async (localPath) => {
     try {
         const result = await cloudinary.uploader.upload(localPath, {
             resource_type: "auto",
@@ -15,28 +17,8 @@ const uploadImageToCloudinary = async (localPath) => {
         fs.unlinkSync(localPath);
         return result.url;
     } catch (err) {
-        return fs.unlinkSync(localPath);
-    };
+        console.error("Error uploading image to Cloudinary:", err);
+        fs.unlinkSync(localPath);
+        throw new Error("Failed to upload image to Cloudinary");
+    }
 };
-
-export const uploadImage = async (req, res) => {
-    if (!req.file) return res.status(400).json({
-        message: "no image file uploaded",
-    });
-
-    try {
-        const uploadResult = await uploadImageToCloudinary(req.file.path);
-        if (!uploadResult) return res.status(500).json({
-            message: "error occured while uploading image"
-        });
-
-        res.json({
-            message: "image uploaded successfully",
-            url: uploadResult,
-        });
-    }
-    catch (error) {
-        console.log(error);
-        res.status(500).json({ message: "error occured while uploading image" });
-    }
-} 
