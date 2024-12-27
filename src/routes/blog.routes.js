@@ -1,9 +1,10 @@
 import express from 'express'
 import { addBlog, allBlog, deleteBlog, editBlog, singleBlog } from '../controllers/blog.controllers.js'
+import { upload } from '../middleware/multer.middleware.js'
 
 const router = express.Router()
 
-router.post('/addblog', addBlog)
+router.post('/addblog', upload.single("image"),addBlog)
 router.delete('/delete/:id', deleteBlog)
 router.put('/edit/:id', editBlog)
 router.get('/blogs', allBlog)
