@@ -3,14 +3,15 @@ import { uploadImageToCloudinary } from "../utils/cloudinary.js";
 
 // add blog 
 const addBlog = async (req, res) => {
-    const { title, description } = req.body;
+    const { title, description, userRef } = req.body;
     if (!title) return res.status(400).json({ message: "title is required" });
     if (!description) return res.status(400).json({ message: "description is required" });
+    if (!userRef) return res.status(400).json({ message: "apna reference dein bahi kesa tu upload kar raha blog" });
     if (!req.file) return res.status(400).json({ message: "Please Upload Un Image" });
     try {
         const imageURL = await uploadImageToCloudinary(req.file.path);
         if (!imageURL) return res.status(500).json({ message: "Error Uploading An Image" });
-        await blog.create({ title, description, imageURL })
+        await blog.create({ title, description, imageURL, userRef })
         res.status(201).json({ message: "blog added successfully" })
     } catch (error) {
         res.status(500).json({ message: "error occurred" })
