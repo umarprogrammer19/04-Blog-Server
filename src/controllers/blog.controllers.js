@@ -1,5 +1,4 @@
-import mongoose from "mongoose";
-import blog from '../models/blog.models.js'
+import blog from '../models/blog.models.js';
 import { uploadImageToCloudinary } from "../utils/cloudinary.js";
 
 // add blog 
@@ -75,4 +74,4 @@ const singleBlog = async (req, res) => {
 
 
 
-export { addBlog, deleteBlog, editBlog, allBlog, singleBlog }
+export { addBlog, allBlog, deleteBlog, editBlog, singleBlog };

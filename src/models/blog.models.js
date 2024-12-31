@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import users from "../models/user.models.js";
 
 const blogSchema = mongoose.Schema({
     title: {
@@ -8,6 +9,10 @@ const blogSchema = mongoose.Schema({
     description: {
         type: String,
         required: true,
+    },
+    userRef: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: users,
     },
     imageURL: {
         type: String,

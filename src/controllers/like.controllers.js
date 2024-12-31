@@ -1,5 +1,5 @@
 import like from '../models/like.models.js'
-const userLike = async(req, res) => {
+const userLike = async (req, res) => {
     const { userId, blogId, } = req.body;
     try {
         const existingLike = await like.findOne({ userId, blogId });
@@ -20,4 +20,4 @@ const userLike = async(req, res) => {
     }
 }
 
-export { userLike }
+export { userLike };
