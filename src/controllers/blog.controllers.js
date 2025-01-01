@@ -1,7 +1,6 @@
 import blog from '../models/blog.models.js';
-import userModels from '../models/user.models.js';
 import { uploadImageToCloudinary } from "../utils/cloudinary.js";
-import jwt from "jsonwebtoken";
+
 // add blog 
 const addBlog = async (req, res) => {
     const { title, description } = req.body;
@@ -10,39 +9,15 @@ const addBlog = async (req, res) => {
     if (!title) return res.status(400).json({ message: "Title is required" });
     if (!description) return res.status(400).json({ message: "Description is required" });
     if (!req.file) return res.status(400).json({ message: "Please upload an image" });
-
+    if (!req.user) return res.status(401).json({ message: "User Unauthorized" });
     try {
-        // Extract JWT from headers
-        const authHeader = req.headers.authorization;
-
-        // Check if the Authorization header is present
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return res.status(401).json({ message: "Unauthorized: No token provided" });
-        }
-
-        // Extract the token
-        const token = authHeader.split(" ")[1];
-
-        // Verify the token
-        const decoded = jwt.verify(token, process.env.ACCESS_JWT_SECRET);
-        const getEmail = decoded.email;
-
-        // Find the user by email
-        const userRef = await userModels.findOne({ email: getEmail });
-        if (!userRef) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        // Upload the image to Cloudinary
+        const userRef = req.user;
+        if (!userRef) return res.status(401).json({ message: "PLease Login First" });
         const imageURL = await uploadImageToCloudinary(req.file.path);
         if (!imageURL) {
             return res.status(500).json({ message: "Error uploading the image" });
         }
-
-        // Create the blog in the database
         await blog.create({ title, description, imageURL, userRef: userRef._id });
-
-        // Send success response
         res.status(201).json({ message: "Blog added successfully" });
     } catch (error) {
         console.error("Error occurred:", error);
@@ -108,3 +83,4 @@ const singleBlog = async (req, res) => {
 
 
 export { addBlog, allBlog, deleteBlog, editBlog, singleBlog };
+
