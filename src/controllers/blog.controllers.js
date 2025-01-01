@@ -55,7 +55,7 @@ const editBlog = async (req, res) => {
 // get all blog
 const allBlog = async (req, res) => {
     try {
-        const blogs = await blog.find({})
+        const blogs = await blog.find({}).populate("userRef", "_id fullname email")
         res.status(200).json({ message: "fetch all blog", blogs })
     } catch (error) {
         res.status(500).json({
