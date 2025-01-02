@@ -85,8 +85,9 @@ const userAllBlog = async (req, res) => {
     try {
         const { _id } = req.user;
         if (!_id) return res.status(400).json({ message: "Something Went Wrong" });
-        const userBlogs = await blog.find({ userRef: _id });
+        const userBlogs = await blog.find({ userRef: _id }).populate("userRef","fullname email _id");
         if (!userBlogs) req.status(404).json({ message: "You Cannot Posted Any Blog" });
+        console.log(userBlogs);
         res.status(200).json({ userBlogs });
     } catch (error) {
         res.status(500).json({
