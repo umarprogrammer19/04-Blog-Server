@@ -87,7 +87,7 @@ const userAllBlog = async (req, res) => {
         if (!_id) return res.status(400).json({ message: "Something Went Wrong" });
         const userBlogs = await blog.find({ userRef: _id });
         if (!userBlogs) req.status(404).json({ message: "You Cannot Posted Any Blog" });
-        res.json({ userBlogs });
+        res.status(200).json({ userBlogs });
     } catch (error) {
         res.status(500).json({
             message: "Error occurred",
