@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import blog from '../models/blog.models.js';
 import { uploadImageToCloudinary } from "../utils/cloudinary.js";
 
@@ -79,8 +80,22 @@ const singleBlog = async (req, res) => {
     }
 }
 
+const userAllBlog = async (req, res) => {
+    if (!req.user) return res.status(401).json({ message: "User Unauthorized" });
+    try {
+        const { _id } = req.user;
+        if (!_id) return res.status(400).json({ message: "Something Went Wrong" });
+        const userBlogs = await blog.find({ userRef: _id });
+        if (!userBlogs) req.status(404).json({ message: "You Cannot Posted Any Blog" });
+        res.json({ userBlogs });
+    } catch (error) {
+        res.status(500).json({
+            message: "Error occurred",
+            error: error.message,
+        });
+    }
+};
 
 
-
-export { addBlog, allBlog, deleteBlog, editBlog, singleBlog };
+export { addBlog, allBlog, deleteBlog, editBlog, singleBlog, userAllBlog };
 
