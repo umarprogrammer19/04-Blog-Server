@@ -59,15 +59,43 @@ export default deleteBlog;
 const editBlog = async (req, res) => {
     const { id } = req.params;
     const { title, description } = req.body;
-    if (!id) return res.status(400).json({ message: "id is required" })
-    try {
-        const blogFound = await blog.findByIdAndUpdate(id, { title, description })
-        if (!blogFound) return res.status(404).json({ message: "no blog found !" })
-        res.status(200).json({ message: "blog edit successfully" })
-    } catch (error) {
-        res.status(500).json({ message: "error occurred" })
+    if (!id) {
+        return res.status(400).json({ message: "Blog ID is required." });
     }
-}
+    if (!title && !description && !req.file) {
+        return res.status(400).json({ message: "Please provide at least one field to update (title, description, or image)." });
+    }
+    if (!req.user) {
+        return res.status(401).json({ message: "You need to log in first." });
+    }
+    try {
+        let imageURL = null;
+        if (req.file) {
+            imageURL = await uploadImageToCloudinary(req.file.path);
+            if (!imageURL) {
+                return res.status(500).json({ message: "Error uploading the image. Please try again." });
+            }
+        }
+        const updatedBlog = await blog.findByIdAndUpdate(
+            id,
+            {
+                title: title || undefined,
+                description: description || undefined,
+                imageURL: imageURL || undefined,
+            },
+            { new: true }
+        );
+
+        if (!updatedBlog) {
+            return res.status(404).json({ message: "No blog found with this ID." });
+        }
+
+        res.status(200).json({ message: "Blog edited successfully", blog: updatedBlog });
+    } catch (error) {
+        console.log("Error editing blog:", error);
+        res.status(500).json({ message: "An error occurred while editing the blog. Please try again later." });
+    }
+};
 
 // get all blog
 const allBlog = async (req, res) => {
