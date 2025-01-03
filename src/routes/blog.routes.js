@@ -7,7 +7,7 @@ const app = express();
 const router = express.Router()
 
 router.post('/addblog', authenticate, upload.single("image"), addBlog);
-router.delete('/delete/:id', deleteBlog);
+router.delete('/delete/:id', authenticate, deleteBlog);
 router.put('/edit/:id', editBlog);
 router.get('/blogs', allBlog);
 router.get('/userBlog', authenticate, userAllBlog);

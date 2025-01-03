@@ -26,18 +26,34 @@ const addBlog = async (req, res) => {
     }
 };
 
-// delete blog 
 const deleteBlog = async (req, res) => {
-    const { id } = req.params;
-    if (!id) return res.status(400).json({ message: "id is required" })
-    try {
-        const blogFound = await blog.findByIdAndDelete(id)
-        if (!blogFound) return res.status(404).json({ message: "no blog found !" })
-        res.status(200).json({ message: "blog deleted successfully" })
-    } catch (error) {
-        res.status(500).json({ message: "error occurred" })
+    const blogId = req.params.id;
+
+    if (!blogId) {
+        return res.status(400).json({ message: "Blog ID is required." });
     }
-}
+    if (!mongoose.Types.ObjectId.isValid(blogId)) {
+        return res.status(400).json({ message: "Invalid Blog ID." });
+    }
+
+    if (!req.user) {
+        return res.status(401).json({ message: "You need to log in first." });
+    }
+
+    try {
+        const blogFound = await blog.findByIdAndDelete(blogId);
+        if (!blogFound) {
+            return res.status(404).json({ message: "No blog found with this ID." });
+        }
+
+        res.status(200).json({ message: "Blog deleted successfully." });
+    } catch (error) {
+        console.error("Error deleting blog:", error);
+        res.status(500).json({ message: "An error occurred while deleting the blog." });
+    }
+};
+
+export default deleteBlog;
 
 // edit blog 
 const editBlog = async (req, res) => {
