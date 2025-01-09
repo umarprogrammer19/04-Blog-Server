@@ -2,8 +2,10 @@ import blogModels from "../models/blog.models.js";
 
 export const userLike = async (req, res) => {
     try {
-        const { userId, blogId } = req.body;
+        const { blogId } = req.body;
+        const userId = req.user._id;
 
+        if (!userId) return res.status(400).json({ message: "Please Login First" });
         const blog = await blogModels.findById(blogId);
 
         if (!blog) {
