@@ -15,6 +15,7 @@ const generateRefreshToken = (user) => {
     });
 };
 
+
 // Sign Up Api 
 export const signUp = async (req, res) => {
     const { fullname, email, password } = req.body;

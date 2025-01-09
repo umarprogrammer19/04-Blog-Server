@@ -14,6 +14,10 @@ const blogSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: users,
     },
+    like: [{
+        type: mongoose.Schema.Types.ObjectId,
+        // ref: likeModels,
+    }],
     imageURL: {
         type: String,
         required: true,

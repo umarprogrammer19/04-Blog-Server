@@ -100,15 +100,27 @@ const editBlog = async (req, res) => {
 // get all blog
 const allBlog = async (req, res) => {
     try {
-        const blogs = await blog.find({}).populate("userRef", "_id fullname email")
-        res.status(200).json({ message: "fetch all blog", blogs })
+        const blogs = await blog.find({})
+            .populate("userRef", "_id fullname email")
+            // .populate("like");
+
+        // Add the likes count to each blog
+        const blogsWithLikesCount = blogs.map(blog => ({
+            ...blog.toObject(),
+            likesCount: blog.like.length,
+        }));
+
+        res.status(200).json({
+            message: "Fetched all blogs",
+            blogs: blogsWithLikesCount,
+        });
     } catch (error) {
         res.status(500).json({
-            message: "error occurred",
-            error: error.message
-        })
+            message: "Error occurred",
+            error: error.message,
+        });
     }
-}
+};
 
 // get single blog 
 const singleBlog = async (req, res) => {

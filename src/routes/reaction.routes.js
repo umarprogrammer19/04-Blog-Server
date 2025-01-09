@@ -5,6 +5,7 @@ import { userComment } from "../controllers/comment.controllers.js";
 const router = express.Router()
 
 router.post('/like', userLike)
+// router.post('/unlike', userUnLike)
 router.post('/comment', userComment)
 
 export default router
