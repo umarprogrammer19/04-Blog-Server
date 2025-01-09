@@ -20,14 +20,14 @@ export const userLike = async (req, res) => {
                 { $pull: { like: userId } },
                 { new: true }
             );
-            return res.status(200).json({ message: 'Blog unliked successfully' });
+            return res.status(200).json({ message: 'Blog unliked successfully', isLiked });
         } else {
             await blogModels.findByIdAndUpdate(
                 blogId,
                 { $push: { like: userId } },
                 { new: true }
             );
-            return res.status(200).json({ message: 'Blog liked successfully' });
+            return res.status(200).json({ message: 'Blog liked successfully', isLiked });
         }
     } catch (error) {
         console.error(error);
