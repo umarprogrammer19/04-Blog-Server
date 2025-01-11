@@ -16,7 +16,7 @@ const blogSchema = mongoose.Schema({
     },
     like: [{
         type: mongoose.Schema.Types.ObjectId,
-        // ref: likeModels,
+        ref: "users",
     }],
     imageURL: {
         type: String,

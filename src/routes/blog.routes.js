@@ -3,7 +3,6 @@ import { addBlog, allBlog, deleteBlog, editBlog, singleBlog, userAllBlog } from 
 import { upload } from '../middleware/multer.middleware.js';
 import { authenticate } from '../middleware/userRef.middleware.js';
 
-const app = express();
 const router = express.Router()
 
 router.post('/addblog', authenticate, upload.single("image"), addBlog);
