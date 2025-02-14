@@ -124,15 +124,24 @@ const allBlog = async (req, res) => {
 const singleBlog = async (req, res) => {
     const { id } = req.params;
     try {
-        const user = await blog.findById(id).populate("comments");
-        res.status(200).json({ message: user })
+        const blogPost = await blog
+            .findById(id)
+            .populate({
+                path: "comments",
+                populate: {
+                    path: "userId",
+                    select: "_id fullname email" 
+                }
+            });
+
+        res.status(200).json({ message: blogPost });
     } catch (error) {
         res.status(500).json({
-            message: "error occurred",
+            message: "Error occurred",
             error: error.message
-        })
+        });
     }
-}
+};
 
 const userAllBlog = async (req, res) => {
     if (!req.user) return res.status(401).json({ message: "User Unauthorized" });
