@@ -103,7 +103,6 @@ const allBlog = async (req, res) => {
         const blogs = await blog.find({})
             .populate("userRef", "_id fullname email").populate("comments")
 
-        // Add the likes count to each blog
         const blogsWithLikesCount = blogs.map(blog => ({
             ...blog.toObject(),
             likesCount: blog.like.length,
@@ -125,7 +124,7 @@ const allBlog = async (req, res) => {
 const singleBlog = async (req, res) => {
     const { id } = req.params;
     try {
-        const user = await blog.findById(id)
+        const user = await blog.findById(id).populate("comments");
         res.status(200).json({ message: user })
     } catch (error) {
         res.status(500).json({
