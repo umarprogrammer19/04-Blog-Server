@@ -7,6 +7,6 @@ const router = express.Router()
 
 router.post('/like', authenticate, userLike);
 router.get("/blog/:blogId/isLiked", authenticate, getLikeStatus);
-router.post('/comment', userComment)
+router.post('/comment', authenticate, userComment)
 
 export default router
