@@ -13,7 +13,7 @@ const userComment = async (req, res) => {
 
         const populatedComment = await comment
             .findById(comments._id)
-            .populate('userId', 'email')
+            .populate('userId', 'email fullname')
             .populate('blogId', 'title content');
 
         res.status(201).json({
