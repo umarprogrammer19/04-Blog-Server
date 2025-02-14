@@ -1,7 +1,9 @@
 import comment from '../models/comment.models.js';
 
 const userComment = async (req, res) => {
-    const { userId, blogId, content } = req.body;
+    const { blogId, content } = req.body;
+    if (!req.user) return req.status(400).json({ message: "Please Login First" });
+    const userId = req.user._id;
     if (!userId || !blogId || !content) {
         return res.status(400).json({ message: "All fields are required" });
     }
