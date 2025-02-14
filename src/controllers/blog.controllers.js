@@ -101,8 +101,7 @@ const editBlog = async (req, res) => {
 const allBlog = async (req, res) => {
     try {
         const blogs = await blog.find({})
-            .populate("userRef", "_id fullname email")
-        // .populate("like");
+            .populate("userRef", "_id fullname email").populate("comments")
 
         // Add the likes count to each blog
         const blogsWithLikesCount = blogs.map(blog => ({
