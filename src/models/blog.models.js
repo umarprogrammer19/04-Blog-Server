@@ -1,10 +1,24 @@
 import mongoose from "mongoose";
 import users from "../models/user.models.js";
 
-const blogSchema = mongoose.Schema({
+const subsectionSchema = new mongoose.Schema({
+    subtitle: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    subdescription: {
+        type: String,
+        required: true,
+        trim: true,
+    }
+}, { _id: false });
+
+const blogSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
+        trim: true,
     },
     description: {
         type: String,
@@ -13,6 +27,7 @@ const blogSchema = mongoose.Schema({
     userRef: {
         type: mongoose.Schema.Types.ObjectId,
         ref: users,
+        required: true,
     },
     comments: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -26,6 +41,25 @@ const blogSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-}, { timestamps: true })
+    quotes: {
+        type: String,
+        trim: true,
+        default: "",
+    },
+    conclusion: {
+        type: String,
+        trim: true,
+        default: "",
+    },
+    subsections: {
+        type: [subsectionSchema],
+        validate: [arrayLimit, '{PATH} exceeds the limit of 5'],
+        default: [],
+    }
+}, { timestamps: true });
 
-export default mongoose.model('blog', blogSchema)
+function arrayLimit(val) {
+    return val.length <= 5;
+}
+
+export default mongoose.model('blog', blogSchema);
