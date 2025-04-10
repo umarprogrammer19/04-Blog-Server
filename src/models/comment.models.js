@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const userComment = new mongoose.Schema({
+const commentSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users',
@@ -14,8 +14,18 @@ const userComment = new mongoose.Schema({
     content: {
         type: String,
         required: true
-    }
-}, { timestamps: true })
+    },
+    parent: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'comment',
+        default: null
+    },
+    replies: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'comment'
+        }
+    ]
+}, { timestamps: true });
 
-
-export default mongoose.model('comment', userComment)
+export default mongoose.model('comment', commentSchema);
