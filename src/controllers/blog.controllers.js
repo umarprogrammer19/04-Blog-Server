@@ -128,11 +128,21 @@ export const allBlog = async (req, res) => {
             .populate("userRef", "_id fullname email imageURL")
             .populate({
                 path: "comments",
-                populate: {
-                    path: "userId",
-                    select: "_id fullname email imageURL"
-                }
-            });
+                populate: [
+                    {
+                        path: "userId",
+                        select: "_id fullname email imageURL"
+                    },
+                    {
+                        path: "replies",
+                        populate: {
+                            path: "userId",
+                            select: "_id fullname email imageURL"
+                        }
+                    }
+                ]
+            })
+
 
         const blogsWithLikesCount = blogs.map(blog => ({
             ...blog.toObject(),
@@ -159,11 +169,20 @@ export const singleBlog = async (req, res) => {
         const blogPost = await Blog.findById(id)
             .populate({
                 path: "comments",
-                populate: {
-                    path: "userId",
-                    select: "_id fullname email"
-                }
-            });
+                populate: [
+                    {
+                        path: "userId",
+                        select: "_id fullname email imageURL"
+                    },
+                    {
+                        path: "replies",
+                        populate: {
+                            path: "userId",
+                            select: "_id fullname email imageURL"
+                        }
+                    }
+                ]
+            })
 
         if (!blogPost) return res.status(404).json({ message: "No blog found with this ID" });
 
