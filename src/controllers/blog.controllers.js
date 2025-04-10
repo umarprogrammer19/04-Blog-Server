@@ -1,106 +1,130 @@
+import Blog from '../models/blog.models.js';
+import { uploadImageToCloudinary } from '../utils/cloudinary.js';
 import mongoose from 'mongoose';
-import blog from '../models/blog.models.js';
-import { uploadImageToCloudinary } from "../utils/cloudinary.js";
 
-// add blog 
-const addBlog = async (req, res) => {
-    const { title, description } = req.body;
+//  Add a new blog post.
+export const addBlog = async (req, res) => {
+    let { title, description, quotes, conclusion, subsections } = req.body;
 
-    // Validate the input
     if (!title) return res.status(400).json({ message: "Title is required" });
     if (!description) return res.status(400).json({ message: "Description is required" });
     if (!req.file) return res.status(400).json({ message: "Please upload an image" });
-    if (!req.user) return res.status(401).json({ message: "User Unauthorized" });
+    if (!req.user) return res.status(401).json({ message: "User unauthorized" });
+
     try {
-        const userRef = req.user;
-        if (!userRef) return res.status(401).json({ message: "PLease Login First" });
+        if (subsections && typeof subsections === "string") {
+            subsections = JSON.parse(subsections);
+        }
+    } catch (err) {
+        return res.status(400).json({ message: "Invalid format for subsections. Must be a valid JSON array." });
+    }
+
+    if (subsections && Array.isArray(subsections) && subsections.length > 5) {
+        return res.status(400).json({ message: "A maximum of 5 subsections is allowed" });
+    }
+
+    try {
         const imageURL = await uploadImageToCloudinary(req.file.path);
-        if (!imageURL) {
-            return res.status(500).json({ message: "Error uploading the image" });
-        }
-        await blog.create({ title, description, imageURL, userRef: userRef._id });
-        res.status(201).json({ message: "Blog added successfully" });
+        if (!imageURL) return res.status(500).json({ message: "Error uploading the image" });
+
+        const blogPost = await Blog.create({
+            title,
+            description,
+            quotes: quotes || "",
+            conclusion: conclusion || "",
+            subsections: subsections || [],
+            imageURL,
+            userRef: req.user._id,
+        });
+
+        return res.status(201).json({
+            message: "Blog added successfully",
+            blog: blogPost,
+        });
     } catch (error) {
-        console.error("Error occurred:", error);
-        res.status(500).json({ message: "An error occurred" });
+        console.error("Error adding blog:", error);
+        return res.status(500).json({ message: "An error occurred while adding the blog", error: error.message });
     }
 };
 
-const deleteBlog = async (req, res) => {
-    const blogId = req.params.id;
 
-    if (!blogId) {
-        return res.status(400).json({ message: "Blog ID is required." });
-    }
-    if (!mongoose.Types.ObjectId.isValid(blogId)) {
-        return res.status(400).json({ message: "Invalid Blog ID." });
-    }
-
-    if (!req.user) {
-        return res.status(401).json({ message: "You need to log in first." });
-    }
-
-    try {
-        const blogFound = await blog.findByIdAndDelete(blogId);
-        if (!blogFound) {
-            return res.status(404).json({ message: "No blog found with this ID." });
-        }
-
-        res.status(200).json({ message: "Blog deleted successfully." });
-    } catch (error) {
-        console.error("Error deleting blog:", error);
-        res.status(500).json({ message: "An error occurred while deleting the blog." });
-    }
-};
-
-export default deleteBlog;
-
-// edit blog 
-const editBlog = async (req, res) => {
+//  Edit an existing blog post.
+export const editBlog = async (req, res) => {
     const { id } = req.params;
-    const { title, description } = req.body;
-    if (!id) {
-        return res.status(400).json({ message: "Blog ID is required." });
+    let { title, description, quotes, conclusion, subsections } = req.body;
+
+    if (!id) return res.status(400).json({ message: "Blog ID is required" });
+    if (!title && !description && !req.file && typeof quotes === 'undefined' &&
+        typeof conclusion === 'undefined' && !subsections) {
+        return res.status(400).json({ message: "Provide at least one field to update (title, description, image, quotes, conclusion, or subsections)" });
     }
-    if (!title && !description && !req.file) {
-        return res.status(400).json({ message: "Please provide at least one field to update (title, description, or image)." });
-    }
-    if (!req.user) {
-        return res.status(401).json({ message: "You need to log in first." });
-    }
+    if (!req.user) return res.status(401).json({ message: "User unauthorized" });
+
     try {
-        let imageURL = null;
+        if (subsections && typeof subsections === "string") {
+            subsections = JSON.parse(subsections);
+        }
+    } catch (err) {
+        return res.status(400).json({ message: "Invalid format for subsections. Must be a valid JSON array." });
+    }
+
+    if (subsections && Array.isArray(subsections) && subsections.length > 5) {
+        return res.status(400).json({ message: "A maximum of 5 subsections is allowed" });
+    }
+
+    try {
+        let imageURL;
         if (req.file) {
             imageURL = await uploadImageToCloudinary(req.file.path);
-            if (!imageURL) {
-                return res.status(500).json({ message: "Error uploading the image. Please try again." });
-            }
-        }
-        const updatedBlog = await blog.findByIdAndUpdate(
-            id,
-            {
-                title: title || undefined,
-                description: description || undefined,
-                imageURL: imageURL || undefined,
-            },
-            { new: true }
-        );
-
-        if (!updatedBlog) {
-            return res.status(404).json({ message: "No blog found with this ID." });
+            if (!imageURL) return res.status(500).json({ message: "Error uploading the image. Please try again." });
         }
 
-        res.status(200).json({ message: "Blog edited successfully", blog: updatedBlog });
+        const updateData = {};
+        if (title) updateData.title = title;
+        if (description) updateData.description = description;
+        if (typeof quotes !== "undefined") updateData.quotes = quotes;
+        if (typeof conclusion !== "undefined") updateData.conclusion = conclusion;
+        if (subsections) updateData.subsections = subsections;
+        if (imageURL) updateData.imageURL = imageURL;
+
+        const updatedBlog = await Blog.findByIdAndUpdate(id, updateData, { new: true });
+        if (!updatedBlog) return res.status(404).json({ message: "No blog found with this ID" });
+
+        return res.status(200).json({
+            message: "Blog updated successfully",
+            blog: updatedBlog,
+        });
     } catch (error) {
-        console.log("Error editing blog:", error);
-        res.status(500).json({ message: "An error occurred while editing the blog. Please try again later." });
+        console.error("Error updating blog:", error);
+        return res.status(500).json({ message: "An error occurred while updating the blog", error: error.message });
     }
 };
 
-// get all blog
-const allBlog = async (req, res) => {
+
+
+// Delete blog Post
+export const deleteBlog = async (req, res) => {
+    const { id: blogId } = req.params;
+
+    if (!blogId) return res.status(400).json({ message: "Blog ID is required" });
+    if (!mongoose.Types.ObjectId.isValid(blogId)) return res.status(400).json({ message: "Invalid Blog ID" });
+    if (!req.user) return res.status(401).json({ message: "You need to log in first" });
+
     try {
-        const blogs = await blog.find({})
+        const deletedBlog = await Blog.findByIdAndDelete(blogId);
+        if (!deletedBlog) return res.status(404).json({ message: "No blog found with this ID" });
+
+        return res.status(200).json({ message: "Blog deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting blog:", error);
+        return res.status(500).json({ message: "An error occurred while deleting the blog" });
+    }
+};
+
+// Get All Blogs 
+export const allBlog = async (req, res) => {
+    try {
+        const blogs = await Blog.find({})
             .populate("userRef", "_id fullname email imageURL")
             .populate({
                 path: "comments",
@@ -115,24 +139,24 @@ const allBlog = async (req, res) => {
             likesCount: blog.like.length,
         }));
 
-        res.status(200).json({
-            message: "Fetched all blogs",
+        return res.status(200).json({
+            message: "Fetched all blogs successfully",
             blogs: blogsWithLikesCount,
         });
     } catch (error) {
-        res.status(500).json({
-            message: "Error occurred",
-            error: error.message,
-        });
+        console.error("Error fetching blogs:", error);
+        return res.status(500).json({ message: "Error occurred while fetching blogs", error: error.message });
     }
 };
 
-// get single blog 
-const singleBlog = async (req, res) => {
+// Single Blog By Id 
+export const singleBlog = async (req, res) => {
     const { id } = req.params;
+
+    if (!id) return res.status(400).json({ message: "Blog ID is required" });
+
     try {
-        const blogPost = await blog
-            .findById(id)
+        const blogPost = await Blog.findById(id)
             .populate({
                 path: "comments",
                 populate: {
@@ -141,31 +165,32 @@ const singleBlog = async (req, res) => {
                 }
             });
 
-        res.status(200).json({ message: blogPost });
-    } catch (error) {
-        res.status(500).json({
-            message: "Error occurred",
-            error: error.message
+        if (!blogPost) return res.status(404).json({ message: "No blog found with this ID" });
+
+        return res.status(200).json({
+            message: "Blog fetched successfully",
+            blog: blogPost,
         });
+    } catch (error) {
+        console.error("Error fetching blog:", error);
+        return res.status(500).json({ message: "Error occurred while fetching the blog", error: error.message });
     }
 };
 
-const userAllBlog = async (req, res) => {
-    if (!req.user) return res.status(401).json({ message: "User Unauthorized" });
+// Get all blog posts for the authenticated user.
+export const userAllBlog = async (req, res) => {
+    if (!req.user) return res.status(401).json({ message: "User unauthorized" });
+
     try {
-        const { _id } = req.user;
-        if (!_id) return res.status(400).json({ message: "Something Went Wrong" });
-        const userBlogs = await blog.find({ userRef: _id }).populate("userRef", "fullname email _id imageURL");
-        if (!userBlogs) req.status(404).json({ message: "You Cannot Posted Any Blog" });
-        res.status(200).json({ userBlogs });
+        const userBlogs = await Blog.find({ userRef: req.user._id }).populate("userRef", "fullname email _id imageURL");
+
+        if (!userBlogs || userBlogs.length === 0) {
+            return res.status(404).json({ message: "No blogs found for this user" });
+        }
+
+        return res.status(200).json({ userBlogs });
     } catch (error) {
-        res.status(500).json({
-            message: "Error occurred",
-            error: error.message,
-        });
+        console.error("Error fetching user's blogs:", error);
+        return res.status(500).json({ message: "Error occurred while fetching your blogs", error: error.message });
     }
 };
-
-
-export { addBlog, allBlog, deleteBlog, editBlog, singleBlog, userAllBlog };
-
