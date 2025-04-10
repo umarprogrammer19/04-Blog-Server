@@ -1,37 +1,31 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt"
 
-const userSchema = new mongoose.Schema({
-    fullname: {
+const commentSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'users',
+        required: true
+    },
+    blogId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'blog',
+        required: true
+    },
+    content: {
         type: String,
         required: true
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true
+    parent: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'comment',
+        default: null
     },
-    password: {
-        type: String,
-        required: true
-    },
-    imageURL: {
-        type: String,
-        require: true
-    },
-    role: {
-        type: String,
-        default: "user",
-        enum: ["user", "admin"]
-    }
-}, { timestamps: true })
+    replies: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'comment'
+        }
+    ]
+}, { timestamps: true });
 
-userSchema.pre("save", async function (next) {
-    const user = this;
-    if (!user.isModified("password")) return;
-    const hashPassword = await bcrypt.hash(user.password, 10);
-    user.password = hashPassword;
-    next();
-})
-
-export default mongoose.model('users', userSchema);
+export default mongoose.model('comment', commentSchema);
