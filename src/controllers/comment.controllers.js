@@ -63,4 +63,39 @@ const deleteComment = async (req, res) => {
     }
 };
 
-export { userComment, deleteComment };
+const replyToComment = async (req, res) => {
+    const { content, parentCommentId } = req.body;
+
+    if (!req.user) return res.status(401).json({ message: "Please login" });
+    if (!parentCommentId || !content) {
+        return res.status(400).json({ message: "Reply must have content and a parent comment ID" });
+    }
+
+    try {
+        const parentComment = await Comment.findById(parentCommentId);
+        if (!parentComment) {
+            return res.status(404).json({ message: "Parent comment not found" });
+        }
+
+        const reply = await Comment.create({
+            userId: req.user._id,
+            blogId: parentComment.blogId,
+            content,
+            parent: parentCommentId,
+        });
+
+        // Optional: Push reply ID to parent comment
+        parentComment.replies = parentComment.replies || [];
+        parentComment.replies.push(reply._id);
+        await parentComment.save();
+
+        const populatedReply = await Comment.findById(reply._id)
+            .populate("userId", "fullname email imageURL");
+
+        return res.status(201).json({ message: "Reply added successfully", reply: populatedReply });
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+export { userComment, deleteComment, replyToComment };
