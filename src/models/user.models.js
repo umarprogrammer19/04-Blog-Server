@@ -17,7 +17,12 @@ const userSchema = new mongoose.Schema({
     },
     imageURL: {
         type: String,
-        require: true,
+        require: true
+    },
+    role: {
+        type: String,
+        default: "user",
+        enum: ["user", "admin"]
     }
 }, { timestamps: true })
 
