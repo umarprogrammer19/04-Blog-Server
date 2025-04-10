@@ -18,7 +18,7 @@ const generateRefreshToken = (user) => {
 
 // Sign Up Api 
 export const signUp = async (req, res) => {
-    const { fullname, email, password } = req.body;
+    const { fullname, email, password, role } = req.body;
     if (!fullname) return res.status(400).json({ message: "full Name is required" });
     if (!email) return res.status(400).json({ message: "email is required" });
     if (!password) return res.status(400).json({ message: "password is required" });
@@ -29,8 +29,8 @@ export const signUp = async (req, res) => {
 
         const imageURL = await uploadImageToCloudinary(req.file.path);
         if (!imageURL) return res.status(500).json({ message: "An Error Occured While Uploading An Image" });
-
-        await users.create({ fullname, email, password, imageURL })
+        const userRole = role ? role : "user";
+        await users.create({ fullname, email, password, imageURL, role: userRole });
         res.status(200).json({ message: "user register successfully" })
     } catch (error) {
         res.status(400).json({ message: "error occured" })
