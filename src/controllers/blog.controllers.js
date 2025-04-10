@@ -2,12 +2,13 @@ import Blog from '../models/blog.models.js';
 import { uploadImageToCloudinary } from '../utils/cloudinary.js';
 import mongoose from 'mongoose';
 
-//  Add a new blog post.
+// Add a new blog post.
 export const addBlog = async (req, res) => {
-    let { title, description, quotes, conclusion, subsections } = req.body;
+    let { title, description, quotes, conclusion, subsections, category } = req.body;
 
     if (!title) return res.status(400).json({ message: "Title is required" });
     if (!description) return res.status(400).json({ message: "Description is required" });
+    if (!category) return res.status(400).json({ message: "category is required" });
     if (!req.file) return res.status(400).json({ message: "Please upload an image" });
     if (!req.user) return res.status(401).json({ message: "User unauthorized" });
 
@@ -34,6 +35,7 @@ export const addBlog = async (req, res) => {
             conclusion: conclusion || "",
             subsections: subsections || [],
             imageURL,
+            category,
             userRef: req.user._id,
         });
 
@@ -48,14 +50,14 @@ export const addBlog = async (req, res) => {
 };
 
 
-//  Edit an existing blog post.
+// Edit an existing blog post.
 export const editBlog = async (req, res) => {
     const { id } = req.params;
-    let { title, description, quotes, conclusion, subsections } = req.body;
+    let { title, description, quotes, conclusion, subsections, category } = req.body;
 
     if (!id) return res.status(400).json({ message: "Blog ID is required" });
     if (!title && !description && !req.file && typeof quotes === 'undefined' &&
-        typeof conclusion === 'undefined' && !subsections) {
+        typeof conclusion === 'undefined' && !subsections && !category) {
         return res.status(400).json({ message: "Provide at least one field to update (title, description, image, quotes, conclusion, or subsections)" });
     }
     if (!req.user) return res.status(401).json({ message: "User unauthorized" });
@@ -86,6 +88,7 @@ export const editBlog = async (req, res) => {
         if (typeof conclusion !== "undefined") updateData.conclusion = conclusion;
         if (subsections) updateData.subsections = subsections;
         if (imageURL) updateData.imageURL = imageURL;
+        if (category) updateData.category = category;
 
         const updatedBlog = await Blog.findByIdAndUpdate(id, updateData, { new: true });
         if (!updatedBlog) return res.status(404).json({ message: "No blog found with this ID" });
@@ -99,8 +102,6 @@ export const editBlog = async (req, res) => {
         return res.status(500).json({ message: "An error occurred while updating the blog", error: error.message });
     }
 };
-
-
 
 // Delete blog Post
 export const deleteBlog = async (req, res) => {
@@ -201,7 +202,23 @@ export const userAllBlog = async (req, res) => {
     if (!req.user) return res.status(401).json({ message: "User unauthorized" });
 
     try {
-        const userBlogs = await Blog.find({ userRef: req.user._id }).populate("userRef", "fullname email _id imageURL");
+        const userBlogs = await Blog.find({ userRef: req.user._id }).populate("userRef", "_id fullname email imageURL")
+            .populate({
+                path: "comments",
+                populate: [
+                    {
+                        path: "userId",
+                        select: "_id fullname email imageURL"
+                    },
+                    {
+                        path: "replies",
+                        populate: {
+                            path: "userId",
+                            select: "_id fullname email imageURL"
+                        }
+                    }
+                ]
+            })
 
         if (!userBlogs || userBlogs.length === 0) {
             return res.status(404).json({ message: "No blogs found for this user" });

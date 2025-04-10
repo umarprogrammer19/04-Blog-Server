@@ -15,8 +15,8 @@ const generateRefreshToken = (user) => {
     });
 };
 
-
 // Sign Up Api 
+
 export const signUp = async (req, res) => {
     const { fullname, email, password, role } = req.body;
     if (!fullname) return res.status(400).json({ message: "full Name is required" });
