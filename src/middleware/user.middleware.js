@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 
+// For Authenticating The user is authorized or not...
 export const authenticateUser = (req, res) => {
     try {
         const refreshJwtToken = req.cookies.refreshToken;
