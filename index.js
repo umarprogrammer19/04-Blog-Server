@@ -10,6 +10,7 @@ import userRouter from "./src/routes/user.routes.js";
 import blogRouter from "./src/routes/blog.routes.js";
 import reactionRouter from "./src/routes/reaction.routes.js";
 
+// for Handle cors 
 const corsOption = {
     origin: "http://localhost:3000",
     credentials: true,
